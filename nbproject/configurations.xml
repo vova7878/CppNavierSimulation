@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="SourceFiles"
+                   displayName="Исходные файлы"
+                   projectFiles="true">
+      <itemPath>src/Addition.cpp</itemPath>
+      <itemPath>src/Advection.cpp</itemPath>
+      <itemPath>src/Divergence.cpp</itemPath>
+      <itemPath>src/FileUtils.cpp</itemPath>
+      <itemPath>src/Pressure.cpp</itemPath>
+      <itemPath>src/Projection.cpp</itemPath>
+      <itemPath>src/Renderer.cpp</itemPath>
+      <itemPath>src/ShaderUtils.cpp</itemPath>
+      <itemPath>src/TextureUtils.cpp</itemPath>
+      <itemPath>src/Visualization.cpp</itemPath>
+      <itemPath>src/glad/glad.C</itemPath>
+      <itemPath>src/main.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="HeaderFiles"
+                   displayName="Файлы заголовков"
+                   projectFiles="true">
+      <itemPath>src/Addition.hpp</itemPath>
+      <itemPath>src/Advection.hpp</itemPath>
+      <itemPath>src/Condition.hpp</itemPath>
+      <itemPath>src/Divergence.hpp</itemPath>
+      <itemPath>src/FileUtils.hpp</itemPath>
+      <itemPath>src/Pressure.hpp</itemPath>
+      <itemPath>src/Projection.hpp</itemPath>
+      <itemPath>src/Renderer.hpp</itemPath>
+      <itemPath>src/ShaderUtils.hpp</itemPath>
+      <itemPath>src/TextureUtils.hpp</itemPath>
+      <itemPath>src/Visualization.hpp</itemPath>
+      <itemPath>src/glad/glad.h</itemPath>
+      <itemPath>src/jtypes.hpp</itemPath>
+      <itemPath>src/glad/khrplatform.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Файлы ресурсов"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Файлы тестов"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Важные файлы"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerOptionItem>`pkg-config --libs glfw3`</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs gl`</linkerOptionItem>
+            <linkerOptionItem>-ldl</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="src/Addition.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Addition.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Advection.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Advection.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Condition.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Divergence.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Divergence.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/FileUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FileUtils.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Pressure.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Pressure.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Projection.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Projection.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Renderer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Renderer.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/ShaderUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ShaderUtils.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/TextureUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/TextureUtils.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Visualization.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Visualization.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/glad/glad.C" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/glad/glad.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/glad/khrplatform.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jtypes.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="src/Addition.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Addition.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Advection.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Advection.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Condition.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Divergence.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Divergence.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/FileUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FileUtils.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Pressure.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Pressure.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Projection.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Projection.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Renderer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Renderer.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/ShaderUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ShaderUtils.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/TextureUtils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/TextureUtils.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Visualization.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Visualization.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/glad/glad.C" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/glad/glad.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/glad/khrplatform.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jtypes.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
