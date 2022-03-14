@@ -7,6 +7,7 @@
 #include "Divergence.hpp"
 #include "Pressure.hpp"
 #include "Projection.hpp"
+#include "Diffusion.hpp"
 
 class Renderer final {
 private:
@@ -29,7 +30,7 @@ private:
     int widthS, heightS;
 
     Visualization* vis;
-    //Diffusion* diff;
+    Diffusion* diff;
     Advection* adv;
     Addition* add;
     //Scaling* scale;

@@ -144,9 +144,6 @@ void printErrors() {
 
 int main(int argc, char** argv) {
     renderer = new Renderer();
-    if (!renderer) {
-        throw std::runtime_error("VFailed to create Renderer");
-    }
 
     int w = 500, h = 500;
 

@@ -24,6 +24,7 @@ void Renderer::onCreate() {
     div = new Divergence(vertexShaderId);
     press = new Pressure(vertexShaderId);
     project = new Projection(vertexShaderId);
+    diff = new Diffusion(vertexShaderId);
 
     glGenVertexArrays(1, &vaoID);
     glBindVertexArray(vaoID);
@@ -94,8 +95,8 @@ void Renderer::drawStages() {
                 false, false, false, false);
 
         if (diffusion != 0.0f) {
-            //diff.apply(cTextureIDs[i], tmpTextureIDs[0], tmpTextureIDs[1],
-            //        widthR, heightR, diffusion * dt, false, false, false, false);
+            diff->apply(cTextureIDs[i], tmpTextureIDs[0], tmpTextureIDs[1],
+                    widthR, heightR, diffusion * dt, false, false, false, false);
         }
 
         adv->apply(cTextureIDs[i], vTextureID, tmpTextureIDs[0], widthR, heightR, dt,
@@ -106,8 +107,8 @@ void Renderer::drawStages() {
             true, false, false, true);
 
     if (viscosity != 0.0f) {
-        //diff.apply(vTextureID, tmpTextureIDs[0], tmpTextureIDs[1],
-        //        widthR, heightR, viscosity * dt, true, false, false, true);
+        diff->apply(vTextureID, tmpTextureIDs[0], tmpTextureIDs[1],
+                widthR, heightR, viscosity * dt, true, false, false, true);
     }
 
     adv->apply(vTextureID, vTextureID, tmpTextureIDs[0], widthR, heightR, dt,

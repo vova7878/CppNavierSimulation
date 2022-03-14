@@ -76,7 +76,6 @@ float* getS(float *out, int n) {
             out[(t * WIDTH + i) * 2 + 1] = H(x, y, n * 2 + 3);
         }
     }
-    std::cout << n << "\n";
     return out;
 }
 

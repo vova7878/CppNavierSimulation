@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/Addition.o \
 	${OBJECTDIR}/src/Advection.o \
+	${OBJECTDIR}/src/Diffusion.o \
 	${OBJECTDIR}/src/Divergence.o \
 	${OBJECTDIR}/src/FileUtils.o \
 	${OBJECTDIR}/src/Pressure.o \
@@ -82,6 +83,11 @@ ${OBJECTDIR}/src/Advection.o: src/Advection.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Advection.o src/Advection.cpp
+
+${OBJECTDIR}/src/Diffusion.o: src/Diffusion.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Diffusion.o src/Diffusion.cpp
 
 ${OBJECTDIR}/src/Divergence.o: src/Divergence.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
