@@ -22,6 +22,14 @@ CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux/cppnaviersimulation
 CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux/package
 CND_PACKAGE_NAME_Release=cppnaviersimulation.tar
 CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/cppnaviersimulation.tar
+# MinGW-Debug configuration
+CND_PLATFORM_MinGW-Debug=MinGW-Linux
+CND_ARTIFACT_DIR_MinGW-Debug=dist/MinGW-Debug/MinGW-Linux
+CND_ARTIFACT_NAME_MinGW-Debug=cppnaviersimulation
+CND_ARTIFACT_PATH_MinGW-Debug=dist/MinGW-Debug/MinGW-Linux/cppnaviersimulation
+CND_PACKAGE_DIR_MinGW-Debug=dist/MinGW-Debug/MinGW-Linux/package
+CND_PACKAGE_NAME_MinGW-Debug=cppnaviersimulation.tar
+CND_PACKAGE_PATH_MinGW-Debug=dist/MinGW-Debug/MinGW-Linux/package/cppnaviersimulation.tar
 #
 # include compiler specific variables
 #

@@ -5,3 +5,4 @@
 #
 # Debug configuration
 # Release configuration
+# MinGW-Debug configuration

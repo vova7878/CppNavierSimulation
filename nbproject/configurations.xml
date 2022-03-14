@@ -194,5 +194,73 @@
       <item path="src/main.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
+    <conf name="MinGW-Debug" type="1">
+      <toolsSet>
+        <compilerSet>MinGW|Intel</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerOptionItem>-static-libgcc -static-libstdc++</linkerOptionItem>
+            <linkerOptionItem>-lglfw3</linkerOptionItem>
+            <linkerOptionItem>-lgdi32</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="src/Addition.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Addition.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Advection.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Advection.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Condition.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Divergence.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Divergence.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/FileUtils.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/FileUtils.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Pressure.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Pressure.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Projection.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Projection.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Renderer.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Renderer.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/ShaderUtils.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/ShaderUtils.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/TextureUtils.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/TextureUtils.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Visualization.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Visualization.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/glad/glad.C" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/glad/glad.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/glad/khrplatform.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jtypes.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/main.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+    </conf>
   </confs>
 </configurationDescriptor>
