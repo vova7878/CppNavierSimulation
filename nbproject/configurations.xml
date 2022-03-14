@@ -217,6 +217,7 @@
             <linkerOptionItem>-lglfw3</linkerOptionItem>
             <linkerOptionItem>-lgdi32</linkerOptionItem>
           </linkerLibItems>
+          <commandLine>-Wl,-subsystem,windows</commandLine>
         </linkerTool>
       </compileType>
       <item path="src/Addition.cpp" ex="false" tool="1" flavor2="9">

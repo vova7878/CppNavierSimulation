@@ -72,7 +72,7 @@ LDLIBSOPTIONS=-static-libgcc -static-libstdc++ -lglfw3 -lgdi32
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cppnaviersimulation: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cppnaviersimulation ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cppnaviersimulation ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,-subsystem,windows
 
 ${OBJECTDIR}/src/Addition.o: src/Addition.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
