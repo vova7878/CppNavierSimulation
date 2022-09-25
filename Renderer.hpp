@@ -14,8 +14,8 @@ struct Renderer {
 
     void onCreate() {
 
-        int vert = gl_utils::createFileShader(GL_VERTEX_SHADER, "shaders/vertex.glsl");
-        int frag = gl_utils::createFileShader(GL_FRAGMENT_SHADER, "shaders/screen.glsl");
+        int vert = gl_utils::createFileShader(GL_VERTEX_SHADER, "shaders/simple.vert");
+        int frag = gl_utils::createFileShader(GL_FRAGMENT_SHADER, "shaders/screen.frag");
         int programID = gl_utils::createProgram(vert, frag);
         glUseProgram(programID);
 
