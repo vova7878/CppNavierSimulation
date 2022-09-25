@@ -41,7 +41,8 @@ struct Renderer {
 
         float tmp[width * height];
         for (int i = 0; i < width * height; i++) {
-            tmp[i] = float(i + 1) / (width * height);
+            tmp[i] = float(i) / (width * height);
+            //tmp[i] = 1;
         }
 
         GLint dataSizeLocation = glGetUniformLocation(programID, "dataSize");
