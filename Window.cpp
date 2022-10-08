@@ -2,6 +2,7 @@
 #include <thread>
 #include <future>
 #include <atomic>
+#include <chrono>
 #include "config.hpp"
 
 #include <BlockingCollection.h>
@@ -9,48 +10,60 @@
 using namespace gl_utils;
 
 using queue_type = code_machina::BlockingQueue<std::function<void()>>;
-queue_type gui_queue(16);
+
+queue_type gui_queue;
 std::function<void() > poll;
 
-std::promise<void> gui_finished_p;
-std::future<void> gui_finished_f;
+std::promise<void> gui_finished_in;
+std::future<void> gui_finished_out;
 
 void error_callback(int error, const char* description) {
     fprintf(stderr, "Error code: %i, desc: %s\n", error, description);
 }
 
 void gl_utils::init() {
-    std::promise<void> inited;
-    auto future = inited.get_future();
+    new(&gui_queue) queue_type(16);
 
-    gui_finished_p = std::promise<void>();
-    gui_finished_f = gui_finished_p.get_future();
+    std::promise<void> inited_in;
+    auto inited_out = inited_in.get_future();
 
-    std::thread gui_thread([&inited]() {
+    gui_finished_in = std::promise<void>();
+    gui_finished_out = gui_finished_in.get_future();
+
+    std::thread gui_thread([&inited_in]() {
         glfwSetErrorCallback(error_callback);
 
         if (!glfwInit()) {
             std::exception_ptr ex = std::make_exception_ptr(
                     std::runtime_error("Unable to initialize GLFW"));
-                    inited.set_exception(ex);
-                    gui_finished_p.set_exception(ex);
+                    inited_in.set_exception(ex);
+                    gui_finished_in.set_exception(ex);
             return;
         }
-        inited.set_value();
+        inited_in.set_value();
 
-        for (auto func : gui_queue) {
-            func();
+        try {
+            for (auto func : gui_queue) {
+                func();
+            }
+        } catch (...) {
+            gui_finished_in.set_exception(std::current_exception());
+                    glfwTerminate();
+            return;
         }
 
         glfwTerminate();
-        gui_finished_p.set_value();
+        gui_finished_in.set_value();
     });
-    future.get();
+    inited_out.get();
     gui_thread.detach();
 
     poll = []() {
         glfwPollEvents();
         if (!gui_queue.is_adding_completed()) {
+            using namespace std::chrono_literals;
+            //TODO
+            std::this_thread::sleep_for(10ms);
             runOnUIThread(poll);
         }
     };
@@ -59,41 +72,21 @@ void gl_utils::init() {
 
 void gl_utils::terminate() {
     gui_queue.complete_adding();
-    gui_finished_f.get();
+    gui_finished_out.get();
 }
 
 void gl_utils::runOnUIThread(std::function<void() > work) {
     gui_queue.add(work);
 }
 
-void key_callback(GLFWwindow* glfw_window, int key, int scancode, int action, int mods) {
-    Window *window = reinterpret_cast<Window*> (glfwGetWindowUserPointer(glfw_window));
-    window->renderer->onKeyEvent(key, scancode, action, mods);
-}
-
-void cursor_pos_callback(GLFWwindow* glfw_window, double xpos, double ypos) {
-    Window *window = reinterpret_cast<Window*> (glfwGetWindowUserPointer(glfw_window));
-    window->renderer->onChangeCursorPos(xpos, ypos);
-}
-
-void mouse_button_callback(GLFWwindow* glfw_window, int button, int action, int mods) {
-    Window *window = reinterpret_cast<Window*> (glfwGetWindowUserPointer(glfw_window));
-    window->renderer->onMouseButtonEvent(button, action, mods);
-}
-
-void scroll_callback(GLFWwindow* glfw_window, double xoffset, double yoffset) {
-    Window *window = reinterpret_cast<Window*> (glfwGetWindowUserPointer(glfw_window));
-    window->renderer->onScroll(xoffset, yoffset);
-}
-
 void framebuffer_size_callback(GLFWwindow* glfw_window, int width, int height) {
     Window *window = reinterpret_cast<Window*> (glfwGetWindowUserPointer(glfw_window));
-    window->renderer->onChangeSize(width, height);
+    window->renderer()->onChangeSize(width, height);
 }
 
-void init_window(Window *window, const char *title) {
+void init_window(Window *window, GLFWwindow **glfw_window, const char *title) {
 
-    window->glfw_window = runOnUIThreadAndWait([&title]() {
+    *glfw_window = runOnUIThreadAndWait([&title]() {
         //TODO
         // Configure GLFW
         glfwDefaultWindowHints();
@@ -109,23 +102,23 @@ void init_window(Window *window, const char *title) {
         return glfwCreateWindow(100, 10, title, nullptr, nullptr);
     });
 
-    if (!window->glfw_window) {
+    if (!window->glfwWindow()) {
         throw std::runtime_error("Failed to create the GLFW window");
     }
 
-    glfwSetWindowUserPointer(window->glfw_window, window);
+    glfwSetWindowUserPointer(window->glfwWindow(), window);
 
     runOnUIThreadAndWait([&window]() {
         //TODO
-        glfwSetKeyCallback(window->glfw_window, key_callback);
+        /*glfwSetKeyCallback(window->glfw_window, key_callback);
         glfwSetCursorPosCallback(window->glfw_window, cursor_pos_callback);
         glfwSetMouseButtonCallback(window->glfw_window, mouse_button_callback);
-        glfwSetScrollCallback(window->glfw_window, scroll_callback);
-        glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_size_callback);
+        glfwSetScrollCallback(window->glfw_window, scroll_callback);*/
+        glfwSetFramebufferSizeCallback(window->glfwWindow(), framebuffer_size_callback);
     });
 
     // Make the OpenGL context current
-    glfwMakeContextCurrent(window->glfw_window);
+    glfwMakeContextCurrent(window->glfwWindow());
 
     // Enable v-sync
     glfwSwapInterval(1);
@@ -134,30 +127,39 @@ void init_window(Window *window, const char *title) {
 }
 
 void loop_window(Window *window) {
-    while (!glfwWindowShouldClose(window->glfw_window)) {
-        window->renderer->onDraw();
 
-        glfwSwapBuffers(window->glfw_window);
+    while (!glfwWindowShouldClose(window->glfwWindow())) {
+
+        window->renderer()->onDraw();
+
+        glfwSwapBuffers(window->glfwWindow());
     }
 }
 
-void run_window(Window *window, const char *title, std::promise<void> *p) {
+void run_window(Window *window, GLFWwindow **glfw_window, const char *title, std::promise<void> *p) {
     try {
-        init_window(window, title);
+        init_window(window, glfw_window, title);
         p->set_value();
     } catch (...) {
         p->set_exception(std::current_exception());
         return;
     }
-    window->renderer->onCreate(window);
+
+    window->renderer()->onCreate(window);
+
+    int fb_width, fb_height;
+    window->getFramebufferSize(&fb_width, &fb_height);
+    window->renderer()->onChangeSize(fb_width, fb_height);
+
     loop_window(window);
-    window->renderer->onDispose();
-    glfwDestroyWindow(window->glfw_window);
+
+    window->renderer()->onDispose();
+    glfwDestroyWindow(window->glfwWindow());
 }
 
-gl_utils::Window::Window(Renderer *r, const char *title) : renderer(r) {
+gl_utils::Window::Window(Renderer *r, const char *title) : p_renderer(r) {
     std::promise<void> p;
     std::future<void> f = p.get_future();
-    graphic_thread = std::thread(run_window, this, title, &p);
+    graphic_thread = std::thread(run_window, this, &glfw_window, title, &p);
     f.get();
 }
