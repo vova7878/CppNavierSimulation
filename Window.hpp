@@ -25,6 +25,18 @@ namespace gl_utils {
         virtual void onDispose() { }
     };
 
+    struct EmptyRenderer : public Renderer {
+
+        virtual void onDraw() override {
+            glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }
+
+        virtual void onChangeSize(int width, int height) override {
+            glViewport(0, 0, width, height);
+        }
+    };
+
     void runOnUIThread(std::function<void()>);
 
     template<typename lambda_t>
