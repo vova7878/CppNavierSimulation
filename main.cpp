@@ -16,7 +16,7 @@ private:
 
 public:
 
-    FastLinearFilter() : sum(0), index(0) {
+    FastLinearFilter() : index(0), sum(0) {
         for (size_t i = 0; i < size; i++) {
             buff[i] = 0;
         }
@@ -158,21 +158,20 @@ int main(int, char**) {
 
     auto wh = gl_utils::defaultWindowHints();
 
+    wh.setSize(500, 500);
     wh.setSwapInterval(1);
 
     MainRenderer r1;
     gl_utils::Window w1(&r1, wh);
-    w1.setSize(500, 500);
-    w1.setVisible(true);
 
     MainRenderer r2;
     gl_utils::Window w2(&r2, wh);
-    w2.setSize(500, 500);
-    w2.setVisible(true);
 
     MainRenderer r3;
     gl_utils::Window w3(&r3, wh);
-    w3.setSize(500, 500);
+
+    w1.setVisible(true);
+    w2.setVisible(true);
     w3.setVisible(true);
 
     w1.waitClose();
