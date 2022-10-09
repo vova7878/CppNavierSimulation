@@ -1196,10 +1196,6 @@ namespace code_machina {
                     BlockingCollectionStatus status)
             : collection_(collection), status_(status), wait_for_first_item(false) { }
 
-            // "Iterator" objects cannot be copied or assigned
-            Iterator(const BlockingCollection&) = delete;
-            Iterator& operator=(const Iterator&) = delete;
-
             bool operator!=(const Iterator&) {
                 if (wait_for_first_item) {
                     wait_for_first_item = false;
