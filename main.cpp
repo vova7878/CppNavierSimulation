@@ -7,6 +7,39 @@
 #include "ShaderUtils.hpp"
 #include "TextureUtils.hpp"
 
+template<size_t size>
+struct FastLinearFilter {
+private:
+    int index;
+    double sum;
+    double buff[size];
+
+public:
+
+    FastLinearFilter() : sum(0), index(0) {
+        for (size_t i = 0; i < size; i++) {
+            buff[i] = 0;
+        }
+    }
+
+    void push(double v) {
+        sum += v - buff[index];
+        buff[index] = v;
+        index = (index + 1) % size;
+    }
+
+    void resum() {
+        sum = 0;
+        for (int i = 0; i < size; i++) {
+            sum += buff[i];
+        }
+    }
+
+    double get() {
+        return sum / size;
+    }
+};
+
 void GLAPIENTRY
 debug_callback(GLenum source,
         GLenum type,
@@ -81,6 +114,7 @@ struct MainRenderer : public gl_utils::Renderer {
     int i;
     decltype(std::chrono::high_resolution_clock::now())
     time = std::chrono::high_resolution_clock::now();
+    FastLinearFilter<64> f;
 
     virtual void onDraw() override {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -99,10 +133,11 @@ struct MainRenderer : public gl_utils::Renderer {
         //TODO
         i++;
         auto tmp_time = std::chrono::high_resolution_clock::now();
-        auto delta = std::chrono::duration_cast<std::chrono::nanoseconds>(tmp_time - time).count();
-        if (delta > 100000000) {
-            time = tmp_time;
-            double fps = i * 1000000000.0 / delta;
+        auto delta = std::chrono::duration_cast<std::chrono::duration<double>>(tmp_time - time).count();
+        f.push(delta);
+        time = tmp_time;
+        if (i > 10) {
+            double fps = 1.0 / f.get();
             window->setTitle(toString("Simulation ", fps));
             i = 0;
         }
@@ -117,30 +152,26 @@ struct MainRenderer : public gl_utils::Renderer {
     virtual void onDispose() override { }
 };
 
-struct EmptyRenderer : public gl_utils::Renderer {
-
-    virtual void onDraw() override {
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-};
-
 int main(int, char**) {
 
     gl_utils::init();
 
+    auto wh = gl_utils::defaultWindowHints();
+
+    wh.setSwapInterval(1);
+
     MainRenderer r1;
-    gl_utils::Window w1(&r1);
+    gl_utils::Window w1(&r1, wh);
     w1.setSize(500, 500);
     w1.setVisible(true);
 
     MainRenderer r2;
-    gl_utils::Window w2(&r2);
+    gl_utils::Window w2(&r2, wh);
     w2.setSize(500, 500);
     w2.setVisible(true);
 
     MainRenderer r3;
-    gl_utils::Window w3(&r3);
+    gl_utils::Window w3(&r3, wh);
     w3.setSize(500, 500);
     w3.setVisible(true);
 
