@@ -10,19 +10,23 @@
 template<size_t size>
 struct FastLinearFilter {
 private:
-    int index;
+    size_t index;
+    size_t elements;
     double sum;
     double buff[size];
 
 public:
 
-    FastLinearFilter() : index(0), sum(0) {
+    FastLinearFilter() : index(0), elements(0), sum(0) {
         for (size_t i = 0; i < size; i++) {
             buff[i] = 0;
         }
     }
 
     void push(double v) {
+        if (elements < size) {
+            elements++;
+        }
         sum += v - buff[index];
         buff[index] = v;
         index = (index + 1) % size;
@@ -30,13 +34,13 @@ public:
 
     void resum() {
         sum = 0;
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             sum += buff[i];
         }
     }
 
     double get() {
-        return sum / size;
+        return sum / elements;
     }
 };
 
@@ -133,10 +137,12 @@ struct MainRenderer : public gl_utils::Renderer {
         //TODO
         i++;
         auto tmp_time = std::chrono::high_resolution_clock::now();
-        auto delta = std::chrono::duration_cast<std::chrono::duration<double>>(tmp_time - time).count();
-        f.push(delta);
+        if (i != 0) {
+            auto delta = std::chrono::duration_cast<std::chrono::duration<double>>(tmp_time - time).count();
+            f.push(delta);
+        }
         time = tmp_time;
-        if (i > 10) {
+        if (i > 20) {
             double fps = 1.0 / f.get();
             window->setTitle(toString("Simulation ", fps));
             i = 0;
