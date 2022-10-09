@@ -83,8 +83,6 @@ struct MainRenderer : public gl_utils::Renderer {
     time = std::chrono::high_resolution_clock::now();
 
     virtual void onDraw() override {
-        glViewport(0, 0, w_width, w_height);
-
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -113,6 +111,7 @@ struct MainRenderer : public gl_utils::Renderer {
     virtual void onChangeSize(int width, int height) override {
         w_width = width;
         w_height = height;
+        glViewport(0, 0, w_width, w_height);
     }
 
     virtual void onDispose() override { }
@@ -133,19 +132,16 @@ int main(int, char**) {
     MainRenderer r1;
     gl_utils::Window w1(&r1);
     w1.setSize(500, 500);
-    //w1.setDefaultLocation();
     w1.setVisible(true);
 
     MainRenderer r2;
     gl_utils::Window w2(&r2);
     w2.setSize(500, 500);
-    //w2.setDefaultLocation();
     w2.setVisible(true);
 
     MainRenderer r3;
     gl_utils::Window w3(&r3);
     w3.setSize(500, 500);
-    //w3.setDefaultLocation();
     w3.setVisible(true);
 
     w1.waitClose();
