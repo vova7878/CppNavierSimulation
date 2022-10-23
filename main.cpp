@@ -7,13 +7,13 @@
 #include "ShaderUtils.hpp"
 #include "TextureUtils.hpp"
 
-template<size_t size>
+template<typename T, size_t size>
 struct FastLinearFilter {
 private:
     size_t index;
     size_t elements;
-    double sum;
-    double buff[size];
+    T sum;
+    T buff[size];
 
 public:
 
@@ -39,7 +39,7 @@ public:
         }
     }
 
-    double get() {
+    T get() {
         return sum / elements;
     }
 };
@@ -115,10 +115,22 @@ struct MainRenderer : public gl_utils::Renderer {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo);
     }
 
-    int i;
     decltype(std::chrono::high_resolution_clock::now())
-    time = std::chrono::high_resolution_clock::now();
-    FastLinearFilter<64> f;
+    time1 = std::chrono::high_resolution_clock::now();
+    decltype(std::chrono::high_resolution_clock::now())
+    time2 = std::chrono::high_resolution_clock::now();
+    FastLinearFilter<double, 64> f;
+
+    void showFPS() {
+        auto tmp_time = std::chrono::high_resolution_clock::now();
+        f.push(std::chrono::duration_cast<std::chrono::duration<double>>(tmp_time - time1).count());
+        time1 = tmp_time;
+        if (std::chrono::duration_cast<std::chrono::duration<double>>(tmp_time - time2).count() > 0.1) {
+            double fps = 1.0 / f.get();
+            window->setTitle(toString("Simulation ", fps));
+            time2 = tmp_time;
+        }
+    }
 
     virtual void onDraw() override {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -134,19 +146,7 @@ struct MainRenderer : public gl_utils::Renderer {
         glDisableVertexAttribArray(positionLocation);
         glBindVertexArray(0);
 
-        //TODO
-        i++;
-        auto tmp_time = std::chrono::high_resolution_clock::now();
-        if (i != 0) {
-            auto delta = std::chrono::duration_cast<std::chrono::duration<double>>(tmp_time - time).count();
-            f.push(delta);
-        }
-        time = tmp_time;
-        if (i > 20) {
-            double fps = 1.0 / f.get();
-            window->setTitle(toString("Simulation ", fps));
-            i = 0;
-        }
+        showFPS();
     }
 
     virtual void onChangeSize(int width, int height) override {
@@ -165,24 +165,14 @@ int main(int, char**) {
     auto wh = gl_utils::defaultWindowHints();
 
     wh.setSize(500, 500);
-    wh.setSwapInterval(1);
+    wh.setSwapInterval(0);
 
     MainRenderer r1;
     gl_utils::Window w1(&r1, wh);
 
-    MainRenderer r2;
-    gl_utils::Window w2(&r2, wh);
-
-    MainRenderer r3;
-    gl_utils::Window w3(&r3, wh);
-
     w1.setVisible(true);
-    w2.setVisible(true);
-    w3.setVisible(true);
 
     w1.waitClose();
-    w2.waitClose();
-    w3.waitClose();
 
     gl_utils::terminate();
 }
