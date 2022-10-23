@@ -100,8 +100,7 @@ struct MainRenderer : public gl_utils::Renderer {
 
         float tmp[width * height];
         for (int i = 0; i < width * height; i++) {
-            tmp[i] = float(i) / (width * height);
-            //tmp[i] = 1;
+            tmp[i] = float(width - i % width) * float(i / width) / width / height;
         }
 
         GLint dataSizeLocation = glGetUniformLocation(programID, "dataSize");
@@ -165,7 +164,7 @@ int main(int, char**) {
     auto wh = gl_utils::defaultWindowHints();
 
     wh.setSize(500, 500);
-    wh.setSwapInterval(0);
+    wh.setSwapInterval(1);
 
     MainRenderer r1;
     gl_utils::Window w1(&r1, wh);
