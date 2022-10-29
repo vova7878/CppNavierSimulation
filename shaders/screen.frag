@@ -16,5 +16,4 @@ void main(){
 	    discard;
 	}
     outData = vec3(data[rxy.y * dataSize.x + rxy.x], 0.0, 0.0);
-	//data[rxy.y * dataSize.x + rxy.x] = 1.0 - data[rxy.y * dataSize.x + rxy.x];
 }
