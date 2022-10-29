@@ -5,7 +5,7 @@
 #include <chrono>
 #include "config.hpp"
 
-#include <BlockingCollection.h>
+#include "ThreadPool.hpp"
 
 namespace gl_utils {
 
@@ -15,62 +15,30 @@ namespace gl_utils {
     //glfwSetMouseButtonCallback(window, mouse_button_callback);
     //glfwSetScrollCallback(window, scroll_callback);
 
-    using queue_type = code_machina::BlockingQueue<std::function<void()>>;
-
-    queue_type* gui_queue;
-
-    std::promise<void> gui_finished_in;
-    std::future<void> gui_finished_out;
+    using pool_type = JIO::thread_pool;
+    alignas(pool_type) char pool_buf[sizeof (pool_type)];
+    pool_type* gui_pool;
 
     std::function<void() > recursive_poll;
 
     void error_callback(int error, const char* description) {
-        fprintf(stderr, "Error code: %i, desc: %s\n", error, description);
+        fprintf(stderr, "Error code: %i, text: %s\n", error, description);
     }
 
     void init() {
-        gui_queue = new queue_type(16);
-
-        std::promise<void> inited_in;
-        auto inited_out = inited_in.get_future();
-
-        gui_finished_in = std::promise<void>();
-        gui_finished_out = gui_finished_in.get_future();
-
-        std::thread gui_thread([&]() {
+        gui_pool = new(&pool_buf) pool_type(16, []() {
             glfwSetErrorCallback(error_callback);
 
             if (!glfwInit()) {
-                std::exception_ptr ex = std::make_exception_ptr(
-                        std::runtime_error("Unable to initialize GLFW"));
-                        inited_in.set_exception(ex);
-                        gui_finished_in.set_exception(ex);
-                return;
+                throw std::runtime_error("Unable to initialize GLFW");
             }
-            inited_in.set_value();
-
-            try {
-                for (auto func : *gui_queue) {
-                    func();
-                }
-            } catch (...) {
-                gui_finished_in.set_exception(std::current_exception());
-                        glfwTerminate();
-                return;
-            }
-
+        }, []() {
             glfwTerminate();
-            gui_finished_in.set_value();
         });
-        inited_out.get();
-        gui_thread.detach();
 
         recursive_poll = []() {
-            glfwPollEvents();
-            if (!gui_queue->is_adding_completed()) {
-                using namespace std::chrono_literals;
-                //TODO
-                std::this_thread::sleep_for(10ms);
+            glfwWaitEventsTimeout(0.01);
+            if (gui_pool->isOK()) {
                 runOnUIThread(recursive_poll);
             }
         };
@@ -78,14 +46,14 @@ namespace gl_utils {
     }
 
     void terminate() {
-        gui_queue->complete_adding();
-        gui_finished_out.get();
-        delete gui_queue;
+        if (gui_pool->shutdown()) {
+            gui_pool->join();
+        }
+        gui_pool->~pool_type();
     }
 
     void runOnUIThread(std::function<void() > work) {
-        //TODO checks
-        gui_queue->add(work);
+        gui_pool->send(work);
     }
 
     void framebuffer_size_callback(GLFWwindow* glfw_window, int, int) {

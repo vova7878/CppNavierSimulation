@@ -39,10 +39,10 @@ namespace gl_utils {
 
     void runOnUIThread(std::function<void()>);
 
-    template<typename lambda_t>
-    using lambda_ret_t = decltype(std::declval<lambda_t>()());
+    template<typename function_t>
+    using function_ret_t = decltype(std::declval<function_t>()());
 
-    template<typename F, typename R = lambda_ret_t<F>, typename... Tp>
+    template<typename F, typename R = function_ret_t<F>, typename... Tp>
     std::enable_if_t<!std::is_same<R, void>(), R>
     runOnUIThreadAndWait(F work, Tp... args) {
         std::promise<R> data_in;
@@ -57,7 +57,7 @@ namespace gl_utils {
         return data_out.get();
     }
 
-    template<typename F, typename R = lambda_ret_t<F>, typename... Tp>
+    template<typename F, typename R = function_ret_t<F>, typename... Tp>
     std::enable_if_t<(std::is_same<R, void>()), R>
     runOnUIThreadAndWait(F work, Tp... args) {
         std::promise<R> data_in;
