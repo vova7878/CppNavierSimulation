@@ -4,7 +4,9 @@
 #include <thread>
 #include <future>
 #include <atomic>
+#include <functional>
 #include <map>
+#include "ThreadPool.hpp"
 #include "config.hpp"
 
 namespace gl_utils {
@@ -37,47 +39,23 @@ namespace gl_utils {
         }
     };
 
-    void runOnUIThread(std::function<void()>);
+    using pool_type = JIO::thread_pool;
+    extern pool_type* gui_pool;
 
-    template<typename function_t>
-    using function_ret_t = decltype(std::declval<function_t>()());
-
-    template<typename F, typename R = function_ret_t<F>, typename... Tp>
-    std::enable_if_t<!std::is_same<R, void>(), R>
-    runOnUIThreadAndWait(F work, Tp... args) {
-        std::promise<R> data_in;
-        auto data_out = data_in.get_future();
-        runOnUIThread([&data_in, &work, &args...]() {
-            try {
-                data_in.set_value(work());
-            } catch (...) {
-                data_in.set_exception(std::current_exception());
-            }
-        });
-        return data_out.get();
+    inline void sendToUIThread(std::function<void() > work) {
+        gui_pool->send(work);
     }
 
-    template<typename F, typename R = function_ret_t<F>, typename... Tp>
-    std::enable_if_t<(std::is_same<R, void>()), R>
-    runOnUIThreadAndWait(F work, Tp... args) {
-        std::promise<R> data_in;
-        auto data_out = data_in.get_future();
-        runOnUIThread([&data_in, &work, &args...]() {
-            try {
-                work();
-                data_in.set_value();
-            } catch (...) {
-                data_in.set_exception(std::current_exception());
-            }
-        });
-        data_out.get();
+    template<typename F>
+    auto runOnUIThreadAndWait(F&& work) {
+        return gui_pool->runAndWait(work);
     }
 
     struct WindowHints {
         int width, height;
         std::string title;
-        GLFWmonitor* monitor;
-        GLFWwindow* share;
+        GLFWmonitor *monitor;
+        GLFWwindow *share;
         int swap_interval;
         std::map<int, int> int_hints;
         std::map<int, const char*> string_hints;
@@ -89,6 +67,14 @@ namespace gl_utils {
         void setSize(int w, int h) {
             width = w;
             height = h;
+        }
+
+        void setMonitor(GLFWmonitor *m) {
+            monitor = m;
+        }
+
+        void setShare(GLFWwindow *s) {
+            share = s;
         }
 
         void setSwapInterval(int value) {
@@ -108,14 +94,16 @@ namespace gl_utils {
         WindowHints out;
         out.setSize(1, 1);
         out.setTitle("");
-        out.monitor = nullptr;
-        out.share = nullptr;
+        out.setMonitor(nullptr);
+        out.setShare(nullptr);
         out.setSwapInterval(1);
 
         out.windowHint(GLFW_VISIBLE, GLFW_FALSE);
         out.windowHint(GLFW_RESIZABLE, GLFW_TRUE);
         return out;
     }
+
+    using cursor_pos_callback_type = std::function<void(double, double) >;
 
     struct Window {
     private:
@@ -124,10 +112,12 @@ namespace gl_utils {
         std::thread graphic_thread;
         std::atomic<void*> user_pointer;
         std::atomic<bool> size_changed;
+        cursor_pos_callback_type cursor_pos_callback;
 
         friend void init_window(Window*, WindowHints &hints);
         friend void loop_window(Window*);
         friend void framebuffer_size_callback(GLFWwindow*, int, int);
+        friend void cursor_pos_callback_h(GLFWwindow*, double, double);
 
     public:
         Window(Renderer *r, WindowHints hints);
@@ -183,6 +173,9 @@ namespace gl_utils {
                 glfwGetWindowSize(glfw_window, width, height);
             });
         }
+
+        cursor_pos_callback_type
+        setCursorPositionCallback(cursor_pos_callback_type);
 
         void getFramebufferSize(int *width, int *height) {
             runOnUIThreadAndWait([&]() {
