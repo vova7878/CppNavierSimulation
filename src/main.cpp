@@ -7,33 +7,6 @@
 #include "ShaderUtils.hpp"
 #include "TextureUtils.hpp"
 
-template<typename T>
-struct Counter {
-private:
-    size_t elements;
-    T sum;
-
-public:
-
-    Counter() : elements(0), sum(0) { }
-
-    void push(T v) {
-        elements++;
-        sum += v;
-    }
-
-    void clear() {
-        elements = 0;
-        sum = 0;
-    }
-
-    T get() {
-        T out = sum / elements;
-        clear();
-        return out;
-    }
-};
-
 void GLAPIENTRY
 debug_callback(GLenum source,
         GLenum type,
@@ -116,18 +89,18 @@ struct MainRenderer : public gl_utils::Renderer {
     using clock_type = std::chrono::high_resolution_clock;
     using time_type = std::chrono::time_point<clock_type>;
 
-    time_type time1 = clock_type::now();
-    time_type time2 = time1;
-    Counter<double> f;
+    time_type time = clock_type::now();
+    int count = 0;
 
     void showFPS() {
         auto tmp_time = clock_type::now();
-        f.push(std::chrono::duration_cast<std::chrono::duration<double>>(tmp_time - time1).count());
-        time1 = tmp_time;
-        if (std::chrono::duration_cast<std::chrono::duration<double>>(tmp_time - time2).count() > 0.1) {
-            double fps = 1.0 / f.get();
+        double value = std::chrono::duration_cast<std::chrono::duration<double>>(tmp_time - time).count();
+        count++;
+        if ((value > 0.1) && (count > 5)) {
+            double fps = count / value;
             window->setTitle(toString("Simulation ", fps));
-            time2 = tmp_time;
+            time = tmp_time;
+            count = 0;
         }
     }
 
