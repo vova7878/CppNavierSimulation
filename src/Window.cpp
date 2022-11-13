@@ -114,18 +114,27 @@ namespace gl_utils {
             std::promise<void> *inited_in) {
         try {
             init_window(window, hints);
+
+            window->renderer()->onCreate(window);
+
             inited_in->set_value();
         } catch (...) {
             inited_in->set_exception(std::current_exception());
             return;
         }
 
-        window->renderer()->onCreate(window);
-
-        loop_window(window);
-
-        //TODO
-        window->renderer()->onDispose();
+        try {
+            try {
+                loop_window(window);
+            } catch (...) {
+                window->renderer()->onDispose();
+                throw std::current_exception();
+            }
+            window->renderer()->onDispose();
+        } catch (...) {
+            glfwDestroyWindow(window->glfwWindow());
+            throw std::current_exception();
+        }
         glfwDestroyWindow(window->glfwWindow());
     }
 
