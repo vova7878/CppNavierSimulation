@@ -124,6 +124,7 @@ namespace gl_utils {
 
         loop_window(window);
 
+        //TODO
         window->renderer()->onDispose();
         glfwDestroyWindow(window->glfwWindow());
     }

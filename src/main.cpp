@@ -1,11 +1,11 @@
 #include <iostream>
-#include <stdexcept>
 #include <chrono>
 
-#include "config.hpp"
 #include "Window.hpp"
-#include "ShaderUtils.hpp"
 #include "TextureUtils.hpp"
+#include "Addition.hpp"
+#include "Visualization.hpp"
+#include "Screen.hpp"
 
 void GLAPIENTRY
 debug_callback(GLenum source,
@@ -22,19 +22,37 @@ debug_callback(GLenum source,
     }
 }
 
+template<typename T>
+struct delay_build {
+    alignas(T) char data[sizeof (T)];
+    T *pointer;
+
+    template<typename... Tp>
+    void init(Tp&&... params) {
+        pointer = new(&data) T(std::forward(params)...);
+    }
+
+    void destroy() {
+        pointer->~T();
+    }
+
+    T* operator->() const {
+        return pointer;
+    }
+};
+
 struct MainRenderer : public gl_utils::Renderer {
+    constexpr static int data_width = 400, data_height = 400;
+
     gl_utils::Window* window;
     int render_width, render_height;
-    GLuint vaoID;
-    GLuint vboID;
-    GLint positionLocation;
-    GLint dataSizeLocation;
-    GLint renderSizeLocation;
 
-    GLuint programID1;
-    GLuint programID2;
+    GLuint screen_buffer;
+    GLuint data_buffer;
 
-    constexpr static int data_width = 400, data_height = 400;
+    delay_build<Visualization> vis;
+    delay_build<Addition> add;
+    delay_build<Screen> scr;
 
     virtual void onCreate(gl_utils::Window* w) override {
         window = w;
@@ -42,48 +60,40 @@ struct MainRenderer : public gl_utils::Renderer {
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(debug_callback, 0);
 
-        int comp = gl_utils::createFileShader(GL_COMPUTE_SHADER, "shaders/compute.comp");
-        programID2 = gl_utils::createProgram(comp);
+        vis.init();
+        add.init();
+        scr.init();
 
-        int vert = gl_utils::createFileShader(GL_VERTEX_SHADER, "shaders/simple.vert");
-        int frag = gl_utils::createFileShader(GL_FRAGMENT_SHADER, "shaders/screen.frag");
-        programID1 = gl_utils::createProgram(vert, frag);
-
-        glGenVertexArrays(1, &vaoID);
-        glBindVertexArray(vaoID);
-
-        float vertices[] = {
-            -1, -1,
-            1, -1,
-            1, 1,
-            -1, 1
-        };
-
-        vboID = gl_utils::genBuffer(GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, vboID);
-
-        positionLocation = glGetAttribLocation(programID1, "position");
-        glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, 0);
-
-        glBindVertexArray(0);
-
-        float tmp[data_width * data_height];
+        float tmp[data_width * data_height * 2];
         for (int i = 0; i < data_width * data_height; i++) {
-            tmp[i] = float(data_width - i % data_width) * float(i / data_width) / data_width / data_height;
+            tmp[i * 2 + 0] = float(data_width - i % data_width) * float(data_height - i / data_width) / data_width / data_height;
+            tmp[i * 2 + 1] = float(i % data_width) * float(i / data_width) / data_width / data_height;
         }
 
-        GLint ssbo = gl_utils::genBuffer(GL_SHADER_STORAGE_BUFFER, sizeof (tmp), tmp, GL_STATIC_DRAW);
+        data_buffer = gl_utils::genBuffer(GL_SHADER_STORAGE_BUFFER, sizeof (tmp), tmp, GL_STATIC_DRAW);
+        screen_buffer = gl_utils::genBuffer(GL_SHADER_STORAGE_BUFFER,
+                sizeof (float) * data_width * data_height * 4, nullptr, GL_STATIC_DRAW);
 
-        GLint block_index = glGetProgramResourceIndex(programID1, GL_SHADER_STORAGE_BLOCK, "ssbo1");
-        glShaderStorageBlockBinding(programID1, block_index, 1);
+    }
 
-        block_index = glGetProgramResourceIndex(programID2, GL_SHADER_STORAGE_BLOCK, "ssbo1");
-        glShaderStorageBlockBinding(programID2, block_index, 1);
+    virtual void onDraw() override {
+        add->apply(data_buffer, data_buffer, 0, 0, 0, data_width, data_height, -0.001);
+        vis->apply(data_buffer, screen_buffer, 0, data_width, data_height);
+        scr->apply(screen_buffer, data_width, data_height, render_width, render_height);
 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo);
+        showFPS();
+    }
 
-        dataSizeLocation = glGetUniformLocation(programID1, "dataSize");
-        renderSizeLocation = glGetUniformLocation(programID1, "renderSize");
+    virtual void onChangeSize(int width, int height) override {
+        render_width = width;
+        render_height = height;
+        glViewport(0, 0, render_width, render_height);
+    }
+
+    virtual void onDispose() override {
+        vis.destroy();
+        add.destroy();
+        scr.destroy();
     }
 
     using clock_type = std::chrono::high_resolution_clock;
@@ -103,39 +113,6 @@ struct MainRenderer : public gl_utils::Renderer {
             count = 0;
         }
     }
-
-    virtual void onDraw() override {
-        glUseProgram(programID2);
-
-        glDispatchCompute(400, 400, 1);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-        glUseProgram(programID1);
-
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glBindVertexArray(vaoID);
-        glEnableVertexAttribArray(positionLocation);
-
-        glUniform2i(dataSizeLocation, data_width, data_height);
-        glUniform2i(renderSizeLocation, render_width, render_height);
-
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-        glDisableVertexAttribArray(positionLocation);
-        glBindVertexArray(0);
-
-        showFPS();
-    }
-
-    virtual void onChangeSize(int width, int height) override {
-        render_width = width;
-        render_height = height;
-        glViewport(0, 0, render_width, render_height);
-    }
-
-    virtual void onDispose() override { }
 };
 
 int main(int, char**) {
