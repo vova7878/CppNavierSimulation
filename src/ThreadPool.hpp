@@ -13,10 +13,10 @@ namespace JIO {
 
     enum struct thread_pool_state {
         NOT_STARTED = 1,
-                OK,
-                FINISHED_OK,
-                FINISHED_ERR,
-                TERMINATING
+        OK,
+        FINISHED_OK,
+        FINISHED_ERR,
+        TERMINATING
     };
 
     class thread_pool {
@@ -72,8 +72,7 @@ namespace JIO {
 
         thread_pool(size_t capacity) : thread_pool(capacity, []() {
         }, []() {
-        }) {
-        }
+        }) { }
 
         bool isOK() {
             return state == thread_pool_state::OK;
@@ -82,7 +81,7 @@ namespace JIO {
         bool isFinished() {
             thread_pool_state tmp = state;
             return tmp == thread_pool_state::FINISHED_OK ||
-                    tmp == thread_pool_state::FINISHED_ERR;
+            tmp == thread_pool_state::FINISHED_ERR;
         }
 
         void join() {
@@ -100,7 +99,7 @@ namespace JIO {
         bool shutdown() {
             thread_pool_state tmp = thread_pool_state::OK;
             bool swap = state.compare_exchange_strong(tmp,
-                    thread_pool_state::TERMINATING);
+            thread_pool_state::TERMINATING);
             if (swap) {
                 work_queue.complete_adding();
                 return true;
@@ -109,7 +108,7 @@ namespace JIO {
                 return true;
             }
             if (tmp == thread_pool_state::FINISHED_OK ||
-                    tmp == thread_pool_state::FINISHED_ERR) {
+            tmp == thread_pool_state::FINISHED_ERR) {
                 return false;
             }
             throw std::runtime_error("Cannot shutdown");
