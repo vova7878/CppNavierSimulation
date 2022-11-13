@@ -14,7 +14,7 @@ namespace gl_utils {
     //glfwSetMouseButtonCallback(window, mouse_button_callback);
     //glfwSetScrollCallback(window, scroll_callback);
 
-    alignas(pool_type) char pool_buf[sizeof (pool_type)];
+    alignas(pool_type) char pool_buf[sizeof(pool_type)];
     pool_type* gui_pool;
 
     void recursive_poll() {
@@ -68,10 +68,10 @@ namespace gl_utils {
             }
 
             return glfwCreateWindow(hints.width,
-                    hints.height,
-                    hints.title.c_str(),
-                    hints.monitor,
-                    hints.share);
+            hints.height,
+            hints.title.c_str(),
+            hints.monitor,
+            hints.share);
         });
 
         if (!window->glfwWindow()) {
@@ -82,7 +82,7 @@ namespace gl_utils {
 
         runOnUIThreadAndWait([&]() {
             glfwSetFramebufferSizeCallback(window->glfwWindow(),
-                    framebuffer_size_callback);
+            framebuffer_size_callback);
         });
 
         // Make the OpenGL context current
@@ -111,7 +111,7 @@ namespace gl_utils {
     }
 
     void run_window(Window *window, WindowHints &hints,
-            std::promise<void> *inited_in) {
+    std::promise<void> *inited_in) {
         try {
             init_window(window, hints);
 
@@ -148,7 +148,7 @@ namespace gl_utils {
     }
 
     void cursor_pos_callback_h(GLFWwindow* glfw_window,
-            double xpos, double ypos) {
+    double xpos, double ypos) {
         Window *window = reinterpret_cast<Window*> (glfwGetWindowUserPointer(glfw_window));
         window->cursor_pos_callback(xpos, ypos);
     }
@@ -158,7 +158,7 @@ namespace gl_utils {
         return runOnUIThreadAndWait([&]() {
             cursor_pos_callback_type tmp = cursor_pos_callback;
             glfwSetCursorPosCallback(glfw_window,
-                    callback ? cursor_pos_callback_h : nullptr);
+            callback ? cursor_pos_callback_h : nullptr);
             cursor_pos_callback = callback;
             return tmp;
         });
