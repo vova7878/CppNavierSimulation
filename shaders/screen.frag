@@ -11,11 +11,11 @@ restrict buffer ssbo1 {
 
 out vec3 outData;
 
-void main(){
-    ivec2 xy = ivec2(gl_FragCoord.xy);
-	ivec2 rxy = xy - (renderSize - dataSize) / 2;
-	if(any(greaterThan(rxy, dataSize - 1)) || any(lessThan(rxy, ivec2(0)))){
-	    discard;
-	}
+void main() {
+    ivec2 xy = ivec2(gl_FragCoord.xy / vec2(renderSize) * vec2(dataSize));
+    ivec2 rxy = xy;//xy - (renderSize - dataSize) / 2;
+    if(any(greaterThan(rxy, dataSize - 1)) || any(lessThan(rxy, ivec2(0)))){
+        discard;
+    }
     outData = data[rxy.y * dataSize.x + rxy.x].xyz;
 }

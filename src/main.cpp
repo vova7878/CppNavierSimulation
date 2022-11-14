@@ -1,30 +1,32 @@
 #include <iostream>
 #include <chrono>
+#include <cstdlib>
 
 #include "Window.hpp"
 #include "TextureUtils.hpp"
 #include "Addition.hpp"
 #include "Visualization.hpp"
 #include "Screen.hpp"
+#include "Advection.hpp"
 
 void GLAPIENTRY
 debug_callback(GLenum source,
-        GLenum type,
-        GLuint id,
-        GLenum severity,
-        GLsizei /*length*/,
-        const GLchar* message,
-        const void* /*userParam*/) {
+GLenum type,
+GLuint id,
+GLenum severity,
+GLsizei /*length*/,
+const GLchar* message,
+const void* /*userParam*/) {
     if (type == GL_DEBUG_TYPE_ERROR) {
         fprintf(stdout, "debug message:%s 0x%x, 0x%x, %u, 0x%x, \"%s\"\n",
-                type == GL_DEBUG_TYPE_ERROR ? " ** GL ERROR **" : "",
-                source, type, id, severity, message);
+        type == GL_DEBUG_TYPE_ERROR ? " ** GL ERROR **" : "",
+        source, type, id, severity, message);
     }
 }
 
 template<typename T>
 struct delay_build {
-    alignas(T) char data[sizeof (T)];
+    alignas(T) char data[sizeof(T)];
     T *pointer;
 
     template<typename... Tp>
@@ -49,9 +51,13 @@ struct MainRenderer : public gl_utils::Renderer {
 
     GLuint screen_buffer;
     GLuint data_buffer;
+    GLuint velocity_buffer;
+
+    GLuint tmp_buffers[1];
 
     delay_build<Visualization> vis;
     delay_build<Addition> add;
+    delay_build<Advection> adv;
     delay_build<Screen> scr;
 
     virtual void onCreate(gl_utils::Window* w) override {
@@ -62,6 +68,7 @@ struct MainRenderer : public gl_utils::Renderer {
 
         vis.init();
         add.init();
+        adv.init();
         scr.init();
 
         float tmp[data_width * data_height * 2];
@@ -69,15 +76,38 @@ struct MainRenderer : public gl_utils::Renderer {
             tmp[i * 2 + 0] = float(data_width - i % data_width) * float(data_height - i / data_width) / data_width / data_height;
             tmp[i * 2 + 1] = float(i % data_width) * float(i / data_width) / data_width / data_height;
         }
+        data_buffer = gl_utils::genBuffer(GL_SHADER_STORAGE_BUFFER, sizeof(tmp), tmp, GL_STATIC_DRAW);
 
-        data_buffer = gl_utils::genBuffer(GL_SHADER_STORAGE_BUFFER, sizeof (tmp), tmp, GL_STATIC_DRAW);
+        for (int i = 0; i < data_width * data_height; i++) {
+            /*float v;
+            if (i % data_width < data_width / 2) {
+                v = i % data_width;
+            } else {
+                v = data_width - i % data_width;
+            }
+            tmp[i * 2 + 0] = v / data_width;
+            tmp[i * 2 + 0] *= 10;
+            tmp[i * 2 + 1] = v / data_width;
+            tmp[i * 2 + 1] *= 10;*/
+            
+            tmp[i * 2 + 1] = 2;
+            tmp[i * 2 + 0] = 5.0f;
+        }
+        velocity_buffer = gl_utils::genBuffer(GL_SHADER_STORAGE_BUFFER, sizeof(tmp), tmp, GL_STATIC_DRAW);
+
         screen_buffer = gl_utils::genBuffer(GL_SHADER_STORAGE_BUFFER,
-                sizeof (float) * data_width * data_height * 4, nullptr, GL_STATIC_DRAW);
+        sizeof(float) * data_width * data_height * 4, nullptr, GL_STATIC_DRAW);
 
+        for (int i = 0; i < 1; i++) {
+            tmp_buffers[i] = gl_utils::genBuffer(GL_SHADER_STORAGE_BUFFER, sizeof(tmp), nullptr, GL_STATIC_DRAW);
+        }
     }
 
     virtual void onDraw() override {
-        add->apply(data_buffer, data_buffer, 0, 0, 0, data_width, data_height, -0.001);
+
+        add->apply(tmp_buffers[0], tmp_buffers[0], 0, 0, 0, data_width, data_height, -1);
+
+        adv->apply(velocity_buffer, data_buffer, tmp_buffers[0], 0, 0, 0, data_width, data_height, 0, 0.01);
         vis->apply(data_buffer, screen_buffer, 0, data_width, data_height);
         scr->apply(screen_buffer, data_width, data_height, render_width, render_height);
 
@@ -93,6 +123,7 @@ struct MainRenderer : public gl_utils::Renderer {
     virtual void onDispose() override {
         vis.destroy();
         add.destroy();
+        adv.destroy();
         scr.destroy();
     }
 

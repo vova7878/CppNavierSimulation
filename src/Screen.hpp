@@ -19,6 +19,8 @@ public:
         int vert = gl_utils::createFileShader(GL_VERTEX_SHADER, "shaders/simple.vert");
         int frag = gl_utils::createFileShader(GL_FRAGMENT_SHADER, "shaders/screen.frag");
         programID = gl_utils::createProgram(vert, frag);
+        glDeleteShader(vert);
+        glDeleteShader(frag);
 
         positionLocation = glGetAttribLocation(programID, "position");
         dataSizeLocation = glGetUniformLocation(programID, "dataSize");
@@ -34,7 +36,7 @@ public:
             -1, 1
         };
 
-        vboID = gl_utils::genBuffer(GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
+        vboID = gl_utils::genBuffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
         glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, 0);
 
@@ -42,6 +44,12 @@ public:
 
         GLint block_index = glGetProgramResourceIndex(programID, GL_SHADER_STORAGE_BLOCK, "ssbo1");
         glShaderStorageBlockBinding(programID, block_index, 1);
+    }
+
+    ~Screen() {
+        glDeleteBuffers(1, &vboID);
+        glDeleteVertexArrays(1, &vaoID);
+        glDeleteProgram(programID);
     }
 
     void apply(GLuint screen_buffer, int data_width, int data_height,

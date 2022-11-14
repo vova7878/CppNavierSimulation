@@ -10,8 +10,9 @@ private:
 public:
 
     Visualization() {
-        programID = gl_utils::createProgram(
-        gl_utils::createFileShader(GL_COMPUTE_SHADER, "shaders/visualization.comp"));
+        GLuint comp_shader = gl_utils::createFileShader(GL_COMPUTE_SHADER, "shaders/visualization.comp");
+        programID = gl_utils::createProgram(comp_shader);
+        glDeleteShader(comp_shader);
 
         GLint buf0_index = glGetProgramResourceIndex(programID, GL_SHADER_STORAGE_BLOCK, "buf0");
         GLint buf1_index = glGetProgramResourceIndex(programID, GL_SHADER_STORAGE_BLOCK, "buf1");
@@ -20,6 +21,10 @@ public:
         glShaderStorageBlockBinding(programID, buf0_index, 1);
         glShaderStorageBlockBinding(programID, buf1_index, 2);
         glShaderStorageBlockBinding(programID, buf2_index, 3);
+    }
+
+    ~Visualization() {
+        glDeleteProgram(programID);
     }
 
     void apply(GLuint data_buffer, GLuint output_buffer, GLuint mask_buffer,

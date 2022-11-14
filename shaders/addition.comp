@@ -18,10 +18,10 @@ restrict readonly buffer buf2 {
     int mask[];
 };
 
-void main(){
+void main() {
     ivec2 xy = ivec2(gl_GlobalInvocationID.xy) + offset;
-	int index = xy.y * size.x + xy.x;
-	if(mask[index] == 0) {
+    int index = xy.y * size.x + xy.x;
+    if(mask[index] == 0) {
         data[index] = data[index] + k * delta[index];
-	}
+    }
 }

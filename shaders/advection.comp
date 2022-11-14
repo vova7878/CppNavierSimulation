@@ -1,0 +1,77 @@
+#version 430 core
+
+layout( local_size_x = 1, local_size_y = 1, local_size_z = 1 ) in;
+
+uniform ivec2 size;
+uniform ivec2 offset;
+uniform float dt;
+
+restrict readonly buffer buf0 {
+    vec2 velocity[];
+};
+
+restrict readonly buffer buf1 {
+    vec2 in_data[];
+};
+
+restrict buffer buf2 {
+    uvec2 out_data[];
+};
+
+restrict readonly buffer buf3 {
+    int mask[];
+};
+
+#define atomicAddFloat(MEM, INDATA) {                                                  \
+    uint expected_mem = MEM;                                                           \
+    float input_mem = (uintBitsToFloat(MEM) + INDATA);                                 \
+    uint returned_mem = atomicCompSwap(MEM, expected_mem, floatBitsToUint(input_mem)); \
+    while(returned_mem != expected_mem){                                               \
+        expected_mem = returned_mem;                                                   \
+        input_mem = (uintBitsToFloat(expected_mem) + INDATA);                          \
+        returned_mem = atomicCompSwap(MEM, expected_mem, floatBitsToUint(input_mem));  \
+    }                                                                                  \
+}
+
+void setData(int index, ivec2 nxy, vec2 value) {
+    int nindex = nxy.y * size.x + nxy.x;
+    int mask_value = any(greaterThanEqual(nxy, size)) || any(lessThan(nxy, ivec2(0))) ? 1 : mask[nindex];
+    switch(mask_value) {
+        case 0:
+            atomicAddFloat(out_data[nindex].x, value.x);
+            atomicAddFloat(out_data[nindex].y, value.y);
+            break;
+        case 1:
+            atomicAddFloat(out_data[index].x, value.x);
+            atomicAddFloat(out_data[index].y, value.y);
+            break;
+    }
+}
+
+void setData(int index, int x, int y, vec2 value) {
+    setData(index, ivec2(x, y), value);
+}
+
+void main() {
+    ivec2 xy = ivec2(gl_GlobalInvocationID.xy) + offset;
+    int index = xy.y * size.x + xy.x;
+    //if(mask[index] == 0) {
+        vec2 new_xy = vec2(xy) + dt * velocity[index];
+        ivec2 int_xy = ivec2(floor(new_xy));
+        vec2 point = new_xy - vec2(int_xy);
+        vec2 value = in_data[index];
+        vec2 vx1 = value * point.x;
+        vec2 vx2 = value - vx1;
+
+        vec2 vx1y1 = vx1 * point.y;
+        vec2 vx1y2 = vx1 - vx1y1;
+
+        vec2 vx2y1 = vx2 * point.y;
+        vec2 vx2y2 = vx2 - vx2y1;
+
+        setData(index, int_xy, vx2y2);
+        setData(index, int_xy.x, int_xy.y + 1, vx2y1);
+        setData(index, int_xy.x + 1, int_xy.y, vx1y2);
+        setData(index, int_xy.x + 1, int_xy.y + 1, vx1y1);
+    //}
+}
